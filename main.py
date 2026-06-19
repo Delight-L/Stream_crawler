@@ -1,6 +1,14 @@
 # 스트림릿 페이지
 import streamlit as st
 
+# 다른 파이썬 파일을 불러와서 연결할 때 하는 방법!!! 매우 중요!!!
+# from '파일 이름' import 앞의 파일에 있는 '함수', '클래스' 이름
+from crawling import crawling_saramin, crawling_work24
+
+# import로 할 때와 from으로 할 때 비교하여 알아두기!
+# import로 하는 경우 import 대상 => 파일(.py)
+# import crawling as cr
+
 # 레이아웃(웹 페이지의 생김새)
 # 스트림릿 웹 페이지의 '헤더' 역할
 st.set_page_config(page_title = '채용공고 자동 크롤링 서비스',
@@ -119,7 +127,51 @@ with st.expander('상세 검색 조건', expanded = True):
             
             edu = edu_options[edu]
 
-            
 
+# st.button(버튼에 들어갈 글자, 크기 조절 옵션)            
+crawling_clicked = st.button('크롤링 시작', 
+                             use_container_width = True,
+                             type = 'primary')
+
+# crawling_clicked => True(버튼을 누름) / False(버튼을 안 누름)
+# if crawling_clicked:
+#     st.write('버튼을 누름')
+
+# else:
+#     st.write('버튼을 안 누름')
+
+# 크롤링 실행!
+# 1. 크롤링 한 결과를 어떻게 받아올 것인가?
+# df = 
+
+
+# 2. 크롤링 하는 동안 어떻게 안내할 것인가?
+if crawling_clicked:
+
+# (1) 검색어나 필수요소가 누락된 경우 안내
+    if not search_text:
+        st.warning('검색어를 입력해 주세요')
+
+
+# (2) 크롤링 실행하는 동안 '기다려 주세요'라는 내용 표시
+    else:
+        with st.spinner(f'{site_select}에서 {search_text} 검색 결과 가져오는 중...'):
+            if site_select == '사람인':
+                # 사람인 사이트의 내용을 크롤링 하는 함수
+                df = crawling_saramin()
+
+
+            else:
+                # 고용24 사이트의 내용을 크롤링 하는 함수
+                df = crawling_work24()
+
+
+    st.session_state['df'] = df
+
+# st.session_state가 뭘까?
+# 화면을 랜더링 할 때에도 'df'으로 가져온 크롤링 정보를 기억하도록 저장하는 역할!!
+# session_state는 '딕셔너리'처럼 저장함
+# session_state['df'] == session_state.df / 같은 것임
+df = st.session_state.df
 
 
