@@ -1,9 +1,10 @@
 # 스트림릿 페이지
 import streamlit as st
+import pandas as pd
 
 # 다른 파이썬 파일을 불러와서 연결할 때 하는 방법!!! 매우 중요!!!
 # from '파일 이름' import 앞의 파일에 있는 '함수', '클래스' 이름
-from crawling import crawling_saramin, crawling_work24
+from crawler import crawling_saramin, crawling_work24, download_to_csv
 
 # import로 할 때와 from으로 할 때 비교하여 알아두기!
 # import로 하는 경우 import 대상 => 파일(.py)
@@ -78,7 +79,7 @@ with st.expander('상세 검색 조건', expanded = True):
                                                list(cat_options.keys()),
                                                default = ['IT개발·데이터'])
             
-            categories = [cat_options[x] for x in selected_category if cat_options[x]]
+            category = [cat_options[x] for x in selected_category if cat_options[x]]
 
 
             # 경력
@@ -128,6 +129,7 @@ with st.expander('상세 검색 조건', expanded = True):
             edu = edu_options[edu]
 
 
+
 # st.button(버튼에 들어갈 글자, 크기 조절 옵션)            
 crawling_clicked = st.button('크롤링 시작', 
                              use_container_width = True,
@@ -143,7 +145,8 @@ crawling_clicked = st.button('크롤링 시작',
 # 크롤링 실행!
 # 1. 크롤링 한 결과를 어떻게 받아올 것인가?
 # df = 
-
+if 'df' not in st.session_state:
+    st.session_state['df'] = pd.DataFrame()
 
 # 2. 크롤링 하는 동안 어떻게 안내할 것인가?
 if crawling_clicked:
@@ -158,13 +161,24 @@ if crawling_clicked:
         with st.spinner(f'{site_select}에서 {search_text} 검색 결과 가져오는 중...'):
             if site_select == '사람인':
                 # 사람인 사이트의 내용을 크롤링 하는 함수
-                df = crawling_saramin()
+                df = crawling_saramin(search_text = search_text,
+                                      except_text = except_text,
+                                      region = locations,
+                                      category = category,
+                                      career = career,
+                                      education = edu,
+                                      max_pages = max_pages)
 
 
             else:
                 # 고용24 사이트의 내용을 크롤링 하는 함수
-                df = crawling_work24()
-
+                df = crawling_work24(search_text = search_text,
+                                     except_text = except_text,
+                                     region = region,
+                                     category = occupation,
+                                     career = career,
+                                     education = edu,
+                                     max_pages = max_pages)
 
     st.session_state['df'] = df
 
@@ -174,4 +188,13 @@ if crawling_clicked:
 # session_state['df'] == session_state.df / 같은 것임
 df = st.session_state.df
 
-
+if not df.empty:
+    st.subheader('검색 결과')
+    st.dataframe(df, use_container_width = True, hide_index = True)
+    
+    csv_data = download_to_csv(df)
+    st.download_button(label = 'CSV 결과 다운로드',
+                       data = csv_data,
+                       file_name = f'crawling_results_{site_select}.csv',
+                       mime = 'text/csv')
+    

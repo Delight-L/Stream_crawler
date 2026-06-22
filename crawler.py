@@ -8,6 +8,18 @@ from bs4 import BeautifulSoup
 import pandas as pd
 # re : 정규표현식으로, 문자열을 정제하는 역할
 import re
+# StringIO : string으로 만들어서 I(Input), O(Output) 하는 라이브러리
+from io import StringIO
+
+
+# buffer(임시 데이터) 상태인 df을 encode한 후 결과를 반환해주는 코드
+# 크롤링 결과물이 지금은 내 컴퓨터(로컬)에 있지만, 배포 후에는 클라우드에 존재함
+# 따라서 클라우드에서 임시 파일인 buffer를 나의 로컬 컴퓨터로 다운로드 가능한 상태로 변경하는 작업
+def download_to_csv(df):
+    buffer = StringIO()
+    df.to_csv(buffer, index = False)
+    return buffer.getvalue().encode('utf-8-sig')
+
 
 # 검색어, 제외할 검색어, 지역, 직무, 경력, 학력, 페이지 수
 # :'자료형' : 들어올 매개변수에 입력될 자료형을 '미리 안내'할 수 있음
@@ -16,6 +28,7 @@ import re
 
 # url, header, parameters => requests.get(주소) 주소로 요청
 # soup 객체로 파싱, 가지고 있다가 select(), 
+
 
 def crawling_saramin(search_text:str,
                      except_text:str = "",
@@ -131,6 +144,7 @@ def crawling_saramin(search_text:str,
     # print(df) 위의 코드에 문제가 있을 시 print 하여 문제 해결
 
     return df
+
 
 def crawling_work24(search_text:str,
                     except_text:str = "",
